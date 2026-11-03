@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Job Post Checker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #e9edf2; --panel: #ffffff; --ink: #14213d; --muted: #5b6577;
+    --line: #cfd6e0; --safe: #1b7f5c; --risk: #c8102e; --accent: #14213d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #0e1524; --panel: #172136; --ink: #eef1f6; --muted: #9aa5b8;
+            --line: #2b3850; --safe: #4cc99a; --risk: #ff6b81; --accent: #eef1f6; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font-family: "IBM Plex Sans", system-ui, sans-serif; line-height: 1.5; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 40px 20px 60px;
+          display: grid; grid-template-columns: 1.3fr 1fr; gap: 28px; }
+  h1 { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800;
+       font-size: clamp(2rem, 5vw, 3.2rem); line-height: 1.05; margin: 0 0 8px; grid-column: 1 / -1; }
+  .sub { color: var(--muted); max-width: 60ch; margin: 0 0 12px; grid-column: 1 / -1; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 22px; }
+  label { display: block; font-weight: 500; margin: 14px 0 4px; font-size: .95rem; }
+  input[type=text], textarea, select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px;
+    background: transparent; color: var(--ink); font: inherit; }
+  textarea { min-height: 90px; resize: vertical; }
+  input:focus, textarea:focus, select:focus, button:focus-visible { outline: 3px solid var(--accent); outline-offset: 1px; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .checks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 14px; }
+  .checks label { display: flex; gap: 8px; align-items: center; margin: 0; font-weight: 400; }
+  button { margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 6px; cursor: pointer;
+           background: var(--accent); color: var(--bg); font: 700 1rem "Bricolage Grotesque", sans-serif; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .result { position: sticky; top: 20px; align-self: start; text-align: center; }
+  .stamp { margin: 18px auto; width: 190px; height: 190px; border-radius: 50%;
+           border: 6px double var(--line); display: grid; place-content: center; color: var(--muted); }
+  .stamp b { font-family: "Bricolage Grotesque", sans-serif; font-size: 1.7rem; line-height: 1.1; }
+  .stamp.safe { border-color: var(--safe); color: var(--safe); transform: rotate(-6deg); }
+  .stamp.risk { border-color: var(--risk); color: var(--risk); transform: rotate(-6deg); }
+  .stamp.pop { animation: pop .35s ease-out; }
+  @keyframes pop { from { transform: scale(1.3) rotate(-14deg); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .stamp.pop { animation: none; } }
+  .bar { height: 10px; background: var(--line); border-radius: 5px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--risk); transition: width .5s; }
+  .note { color: var(--muted); font-size: .85rem; margin-top: 14px; }
+  @media (max-width: 760px) { .wrap { grid-template-columns: 1fr; } .row { grid-template-columns: 1fr; } .result { position: static; } }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Is this job post real?</h1>
+  <p class="sub">Paste the details of a job listing. The model checks the wording and the listing’s basic details, then tells you how likely it is to be a scam.</p>
+
+  <section class="panel">
+    <label for="title">Job title</label>
+    <input type="text" id="title" placeholder="e.g. Data Entry Executive">
+
+    <label for="company_profile">About the company</label>
+    <textarea id="company_profile" placeholder="Paste the company description (leave empty if the post has none)"></textarea>
+
+    <label for="description">Job description</label>
+    <textarea id="description" placeholder="Paste the job description"></textarea>
+
+    <label for="requirements">Requirements</label>
+    <textarea id="requirements" placeholder="Paste the requirements"></textarea>
+
+    <div class="row">
+      <div>
+        <label for="employment_type">Employment type</label>
+        <select id="employment_type">
+          <option>Unknown</option><option>Full-time</option><option>Part-time</option>
+          <option>Contract</option><option>Temporary</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="required_experience">Experience level</label>
+        <select id="required_experience">
+          <option>Unknown</option><option>Internship</option><option>Entry level</option>
+          <option>Associate</option><option>Mid-Senior level</option><option>Director</option>
+          <option>Executive</option><option>Not Applicable</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="required_education">Education required</label>
+    <select id="required_education">
+      <option>Unknown</option><option>High School or equivalent</option><option>Certification</option>
+      <option>Associate Degree</option><option>Bachelor's Degree</option><option>Master's Degree</option>
+      <option>Doctorate</option><option>Unspecified</option>
+    </select>
+
+    <div class="checks">
+      <label><input type="checkbox" id="telecommuting"> Remote work</label>
+      <label><input type="checkbox" id="has_company_logo" checked> Has company logo</label>
+      <label><input type="checkbox" id="has_questions"> Has screening questions</label>
+    </div>
+
+    <button id="go">Check this post</button>
+  </section>
+
+  <aside class="panel result" aria-live="polite">
+    <div class="stamp" id="stamp"><b>Waiting</b><span>for a job post</span></div>
+    <div class="bar" aria-hidden="true"><span id="fill"></span></div>
+    <p id="msg" class="note">Scam probability will show here.</p>
+    <p class="note">This is a learning project. Always verify a company on its official website before sharing personal details or money.</p>
+  </aside>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  $("go").addEventListener("click", async () => {
+    if (!$("title").value.trim() || !$("description").value.trim()) {
+      $("msg").textContent = "Please fill in at least the job title and description.";
+      return;
+    }
+
+    const payload = {
+      title: $("title").value,
+      company_profile: $("company_profile").value,
+      description: $("description").value,
+      requirements: $("requirements").value,
+      employment_type: $("employment_type").value,
+      required_experience: $("required_experience").value,
+      required_education: $("required_education").value,
+      telecommuting: $("telecommuting").checked ? 1 : 0,
+      has_company_logo: $("has_company_logo").checked ? 1 : 0,
+      has_questions: $("has_questions").checked ? 1 : 0
+    };
+
+    $("go").disabled = true;
+    $("go").textContent = "Checking…";
+
+    try {
+      const res = await fetch("/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      const pct = Math.round(data.probability * 100);
+      const stamp = $("stamp");
+
+      stamp.className = "stamp pop " + (data.fraudulent ? "risk" : "safe");
+      stamp.innerHTML = data.fraudulent
+        ? "<b>Likely<br>fake</b><span>" + pct + "% risk</span>"
+        : "<b>Looks<br>genuine</b><span>" + pct + "% risk</span>";
+      $("fill").style.width = pct + "%";
+      $("msg").textContent = data.fraudulent
+        ? "Several signals match known fake postings. Do not pay any fee or share documents."
+        : "Few warning signs found. Still verify the company before you apply.";
+    } catch (err) {
+      $("msg").textContent = "Could not reach the server. Is the API running?";
+    }
+
+    $("go").disabled = false;
+    $("go").textContent = "Check this post";
+  });
+</script>
+</body>
+</html>
