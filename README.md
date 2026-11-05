@@ -1,5 +1,7 @@
 # Fake Job Post Detector
 
+Live demo: https://fake-job-detector-fafw.onrender.com
+
 This is a small web app where you paste a job post and it tells you how likely the post is to be fake.
 
 I made it as a learning project. I wanted to go through the whole journey once: clean the data, train a model on text, wrap it in an API, make a simple page for it and then pack it all in Docker.
@@ -99,6 +101,8 @@ screenshot_real.png                 Result for a real looking post
 - The output is only a probability, not proof. A high score just means the post looks like the fake ones the model has seen before.
 
 ## What I want to try next
+
+- Putting the app online so anyone can try it without installing anything
 
 - TF-IDF and word pairs (n-grams), and compare the scores
 - Other models like XGBoost or Random Forest against Logistic Regression
